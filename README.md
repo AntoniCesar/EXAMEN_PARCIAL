@@ -3,33 +3,47 @@ RESOLUCION
 Grupo\_05
 27/7/2021
 
-## R Markdown
-
-This is an R Markdown document. Markdown is a simple formatting syntax
-for authoring HTML, PDF, and MS Word documents. For more details on
-using R Markdown see <http://rmarkdown.rstudio.com>.
-
-When you click the **Knit** button a document will be generated that
-includes both content as well as the output of any embedded R code
-chunks within the document. You can embed an R code chunk like this:
-
 ``` r
-summary(cars)
+library(tidyverse)
+library(hydroGOF)
+library(pacman)
 ```
 
-    ##      speed           dist       
-    ##  Min.   : 4.0   Min.   :  2.00  
-    ##  1st Qu.:12.0   1st Qu.: 26.00  
-    ##  Median :15.0   Median : 36.00  
-    ##  Mean   :15.4   Mean   : 42.98  
-    ##  3rd Qu.:19.0   3rd Qu.: 56.00  
-    ##  Max.   :25.0   Max.   :120.00
+## PARTE 2
 
-## Including Plots
+**Calcular la precipitación acumulada anual (Valores observados) para la
+cuenca asignada**
 
-You can also embed plots, for example:
+``` r
+parametros <- as_tibble(read.csv("mods_clima_uh.csv")) 
+```
 
-![](README_files/figure-gfm/pressure-1.png)<!-- -->
+**b) Calcular el porcentaje de sesgo (%, PBIAS) de los escenarios
+climáticos (ACCESS, HADGEM2, MPI) respecto a los datos observados para
+cada mes (enero - diciembre) de cada variable, para la cuenca asignada**
 
-Note that the `echo = FALSE` parameter was added to the code chunk to
-prevent printing of the R code that generated the plot.
+*Primero filtramos los datos y seleccionamos el parametro con el que
+trabajaremos, el cual es la precipitación mensual (bh\_pc)*
+
+``` r
+ppobs <- dplyr::filter(parametros, bh_esc == "Observado") %>% 
+         select(bh_pc)
+mod_Aces <- dplyr::filter(parametros, bh_esc == "ACCESS 1.0") %>% 
+         select(bh_pc)
+mod_Had <- dplyr::filter(parametros, bh_esc == "HadGEM2-ES") %>% 
+         select(bh_pc)
+mod_MPI<- dplyr::filter(parametros, bh_esc == "MPI-ESM-LR") %>% 
+         select(bh_pc)
+```
+
+*ahora aplicamos la función “pbias” el cual esta el la libreria
+“hydroGOF” para tener los valores de sesgo y por ultimo unimos para
+que no se repitan los valores*
+
+``` r
+sesgo <- parametros %>% 
+  transmute (bias_Aces = pbias(ppobs, mod_Aces),
+            bias_Had = pbias(ppobs, mod_Had),
+            bias_MPI = pbias(ppobs, mod_MPI)) %>% 
+  unique()
+```
