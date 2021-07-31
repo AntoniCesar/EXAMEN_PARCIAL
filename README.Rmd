@@ -11,6 +11,34 @@ library(hydroGOF)
 library(pacman)
 ```
 
+## PARTE 1 
+
+**1) Se tiene una variable x (no necesariamente temperatura) que depende de la 
+elevación. Se sabe que entre los 1000 y 3000 metros, esta variable se ve 
+reducido en 2 unidades cada 500 metros. Entre los 3000 y 4000metros, varía 
+en 0.5 unidades, y a una altitud mayor, su valor es constante. Cree una función 
+que permitaobtener el valor de esta variable, ́unicamente con el dato de la
+elevacióon** 
+
+**El valor de la variable x a 1000 metros es de 81.4 unidades**
+
+```{r}
+#Donde i es la altura
+x <- 5000
+y <- ((-0.004*x) + 85.4)
+z <- ((-0.001*x) + 72.9)
+m <- 72.4
+if (1000 <= x & x <= 3000) {
+ cat("El valor de la variable x es", y)
+} else if (3000 < x & x <= 4000) {
+  cat("El valor de la variable x es", z)
+} else {
+   cat("El valor de la variable x es", m)
+}
+```
+
+
+
 ## PARTE 2
 
 **Calcular la precipitación acumulada anual (Valores observados) 
