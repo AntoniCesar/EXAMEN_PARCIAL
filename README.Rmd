@@ -37,6 +37,18 @@ if (1000 <= x & x <= 3000) {
 }
 ```
 
+**2)Resolver el siguiente sistema de ecuaciones.**
+
+```{r}
+(matriz<- matrix(c(3,2,-2,2,-1,3,1,4,2), nrow = 3 , byrow = T))
+ sol_matriz <- c(0,9,-4)
+(solve(matriz,sol_matriz))
+```
+```{r}
+respuestas <- solve(matriz,sol_matriz)
+names(respuestas) <- c("x","y","z")
+respuestas
+```
 
 
 ## PARTE 2
@@ -45,6 +57,13 @@ if (1000 <= x & x <= 3000) {
 para la cuenca asignada**
 ```{r}
 parametros <- as_tibble(read.csv("mods_clima_uh.csv")) 
+```
+
+```{r}
+(cuenca_tumbes_obs <- parametros %>%
+    dplyr::filter(uh_name == "Cuenca Tumbes" & bh_esc == "Observado" ) %>%
+    group_by(uh_name) %>% 
+    summarize( pp_acumulada = sum(bh_pc)))
 ```
 
 
