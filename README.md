@@ -37,6 +37,33 @@ if (1000 <= x & x <= 3000) {
 
     ## El valor de la variable x es 72.4
 
+**2)Resolver el siguiente sistema de ecuaciones.**
+
+``` r
+(matriz<- matrix(c(3,2,-2,2,-1,3,1,4,2), nrow = 3 , byrow = T))
+```
+
+    ##      [,1] [,2] [,3]
+    ## [1,]    3    2   -2
+    ## [2,]    2   -1    3
+    ## [3,]    1    4    2
+
+``` r
+ sol_matriz <- c(0,9,-4)
+(solve(matriz,sol_matriz))
+```
+
+    ## [1]  2 -2  1
+
+``` r
+respuestas <- solve(matriz,sol_matriz)
+names(respuestas) <- c("x","y","z")
+respuestas
+```
+
+    ##  x  y  z 
+    ##  2 -2  1
+
 ## PARTE 2
 
 **a).Calcular la precipitación acumulada anual (Valores observados) para
@@ -45,6 +72,18 @@ la cuenca asignada**
 ``` r
 parametros <- as_tibble(read.csv("mods_clima_uh.csv")) 
 ```
+
+``` r
+(cuenca_tumbes_obs <- parametros %>%
+    dplyr::filter(uh_name == "Cuenca Tumbes" & bh_esc == "Observado" ) %>%
+    group_by(uh_name) %>% 
+    summarize( pp_acumulada = sum(bh_pc)))
+```
+
+    ## # A tibble: 1 x 2
+    ##   uh_name       pp_acumulada
+    ##   <chr>                <dbl>
+    ## 1 Cuenca Tumbes         852.
 
 **b) Calcular el porcentaje de sesgo (%, PBIAS) de los escenarios
 climáticos (ACCESS, HADGEM2, MPI) respecto a los datos observados para
