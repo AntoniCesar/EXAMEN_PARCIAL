@@ -21,7 +21,7 @@ variable, ́unicamente con el dato de la elevacióon**
 **El valor de la variable x a 1000 metros es de 81.4 unidades**
 
 ``` r
-#Donde i es la altura
+#Donde x es la altura
 x <- 5000
 y <- ((-0.004*x) + 85.4)
 z <- ((-0.001*x) + 72.9)
@@ -39,11 +39,19 @@ if (1000 <= x & x <= 3000) {
 
 ## PARTE 2
 
-**Calcular la precipitación acumulada anual (Valores observados) para la
-cuenca asignada**
+**Primero que nada leeremos la data**
 
 ``` r
-parametros <- as_tibble(read.csv("mods_clima_uh.csv")) 
+parametros <- as_tibble(read.csv("mods_clima_uh.csv"))
+```
+
+**a) Calcular la precipitación acumulada anual (Valores observados) para
+la cuenca asignada**
+
+``` r
+cuenca_tumbes_obs <- parametros %>% 
+   dplyr::filter( uh_name == "Cuenca Tumbes" & bh_esc == "Observado" )%>% 
+  group_by(uh_name) %>% summarize( pp_acumulada = sum(bh_pc))
 ```
 
 **b) Calcular el porcentaje de sesgo (%, PBIAS) de los escenarios
@@ -54,24 +62,76 @@ cada mes (enero - diciembre) de cada variable, para la cuenca asignada**
 trabajaremos, el cual es la precipitación mensual (bh\_pc)*
 
 ``` r
-ppobs <- dplyr::filter(parametros, bh_esc == "Observado") %>% 
-         select(bh_pc)
-mod_Aces <- dplyr::filter(parametros, bh_esc == "ACCESS 1.0") %>% 
-         select(bh_pc)
-mod_Had <- dplyr::filter(parametros, bh_esc == "HadGEM2-ES") %>% 
-         select(bh_pc)
-mod_MPI<- dplyr::filter(parametros, bh_esc == "MPI-ESM-LR") %>% 
-         select(bh_pc)
+ppobs <- dplyr::filter(parametros, bh_esc == "Observado" & 
+                         uh_name == "Cuenca Tumbes") 
+mod_Aces <- dplyr::filter(parametros, bh_esc == "ACCESS 1.0" &
+                          uh_name == "Cuenca Tumbes") 
+mod_Had <- dplyr::filter(parametros, bh_esc == "HadGEM2-ES" & 
+                           uh_name == "Cuenca Tumbes") 
+         
+mod_MPI<- dplyr::filter(parametros, bh_esc == "MPI-ESM-LR" & 
+                          uh_name == "Cuenca Tumbes") 
 ```
 
 *ahora aplicamos la función “pbias” el cual esta el la libreria
 “hydroGOF” para tener los valores de sesgo y por ultimo unimos para
 que no se repitan los valores*
 
+*Aplicamos sesgo para la precipitacion*
+
 ``` r
-sesgo <- parametros %>% 
-  transmute (bias_Aces = pbias(ppobs, mod_Aces),
-            bias_Had = pbias(ppobs, mod_Had),
-            bias_MPI = pbias(ppobs, mod_MPI)) %>% 
-  unique()
+(sesgo_pp <- parametros %>% 
+  transmute(bias_Aces = pbias(mod_Aces$bh_pc, ppobs$bh_pc),
+            bias_Had = pbias(mod_Had$bh_pc, ppobs$bh_pc),
+            bias_MPI = pbias(mod_MPI$bh_pc, ppobs$bh_pc)) %>% unique())
 ```
+
+    ## # A tibble: 1 x 3
+    ##   bias_Aces bias_Had bias_MPI
+    ##       <dbl>    <dbl>    <dbl>
+    ## 1      25.9     13.8     -1.5
+
+*Aplicamos sesgo para la evapotranspiracion real*
+
+``` r
+(sesgo_evap <- parametros %>% 
+  transmute(bias_Aces = pbias(mod_Aces$bh_er, ppobs$bh_er),
+            bias_Had = pbias(mod_Had$bh_er, ppobs$bh_er),
+            bias_MPI = pbias(mod_MPI$bh_er, ppobs$bh_er)) %>% unique())
+```
+
+    ## # A tibble: 1 x 3
+    ##   bias_Aces bias_Had bias_MPI
+    ##       <dbl>    <dbl>    <dbl>
+    ## 1       8.2      7.3        1
+
+*Aplicamos sesgo para el rendimiento hídrico*
+
+``` r
+(sesgo_rhidrico <- parametros %>% 
+  transmute(bias_Aces = pbias(mod_Aces$bh_rh, ppobs$bh_rh),
+            bias_Had = pbias(mod_Had$bh_rh, ppobs$bh_rh),
+            bias_MPI = pbias(mod_MPI$bh_rh, ppobs$bh_rh)) %>% unique())
+```
+
+    ## # A tibble: 1 x 3
+    ##   bias_Aces bias_Had bias_MPI
+    ##       <dbl>    <dbl>    <dbl>
+    ## 1      35.9     17.4     -2.9
+
+*Aplicamos sesgo para el caudal*
+
+``` r
+(sesgo_caudal <- parametros %>% 
+  transmute(bias_Aces = pbias(mod_Aces$bh_qd, ppobs$bh_qd),
+            bias_Had = pbias(mod_Had$bh_qd, ppobs$bh_qd),
+            bias_MPI = pbias(mod_MPI$bh_qd, ppobs$bh_qd)) %>% unique())
+```
+
+    ## # A tibble: 1 x 3
+    ##   bias_Aces bias_Had bias_MPI
+    ##       <dbl>    <dbl>    <dbl>
+    ## 1      40.9     21.3     -3.1
+
+**c) De la pregunta anterior, ¿Cual es el escenario climático más
+preciso? Fundamente su respuesta.**
