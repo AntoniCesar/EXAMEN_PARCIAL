@@ -75,7 +75,6 @@ respuestas
 
 ```{r}
 parametros <- as_tibble(read.csv("mods_clima_uh.csv"))
-
 ```
 
 
@@ -150,6 +149,56 @@ Fundamente su respuesta.**
 
 ```{r}
 as_tibble(sesgo_caudal, sesgo_evap, sesgo_pp, sesgo_rhidrico)
+```
+
+**d) Graficar, con ggplot2, la precipitaci´on (enero a diciembre) observada y modelos climaticos.**
+
+```{r}
+(observado <- parametros %>% 
+    dplyr::filter( uh_name == "Cuenca Tumbes" & bh_esc == "Observado") %>% 
+  mutate( meses = as.Date(sprintf("2000-%s-01", bh_month)))%>% 
+    dplyr::select(bh_pc,meses) %>% rename(ppobsr = bh_pc))
+```
+
+```{r}
+(ACCESS <- parametros %>%
+  dplyr::filter( uh_name == "Cuenca Tumbes" & bh_esc == "ACCESS 1.0" ) %>%
+  dplyr::select(bh_pc) %>% rename(ppacces = bh_pc))
+```
+
+```{r}
+(MPI <- parametros %>% 
+  dplyr::filter( uh_name == "Cuenca Tumbes" & bh_esc == "MPI-ESM-LR" ) %>%
+  dplyr::select(bh_pc) %>% rename(ppmpi = bh_pc))
+```
+
+```{r}
+(HadGEM2 <- parametros %>% 
+  dplyr::filter( uh_name == "Cuenca Tumbes" & bh_esc == "HadGEM2-ES" ) %>%
+  dplyr::select(bh_pc) %>% rename(pphad = bh_pc))
+```
+
+```{r}
+(observ_modelos <- data.frame(ACCESS, MPI ,HadGEM2,observado) %>% as_tibble())
+```
+
+```{r}
+ggplot(observ_modelos, aes(x=meses)) +
+  geom_line(aes(y=ppobsr, color = "Observado"))+
+  geom_point(aes(y=ppobsr, color = "Observado"))+
+  geom_line(aes(y=ppacces, color = "Access"))+
+  geom_point(aes(y=ppacces, color = "Access"))+
+  geom_line(aes(y=pphad, color = "HADGEM2"))+
+  geom_point(aes(y=pphad, color = "HADGEM2"))+
+  geom_line(aes(y=ppmpi, color = "MPI"))+
+  geom_point(aes(y=ppmpi, color = "MPI"))+
+  labs(x = "Meses",
+       y = "Pp")+
+  scale_colour_manual("",
+                      breaks = c("Access","HADGEM2","MPI","Observado"),
+                      values = c("red","green","orange","blue"))+
+  theme(axis.title.x = element_text(face = "bold"),
+        axis.title.y = element_text(face = "bold"))
 ```
 
 ## PARTE 3

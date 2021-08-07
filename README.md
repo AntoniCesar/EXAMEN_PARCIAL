@@ -192,6 +192,139 @@ as_tibble(sesgo_caudal, sesgo_evap, sesgo_pp, sesgo_rhidrico)
     ##       <dbl>    <dbl>    <dbl>
     ## 1      40.9     21.3     -3.1
 
+**d) Graficar, con ggplot2, la precipitaci´on (enero a diciembre)
+observada y modelos climaticos.**
+
+``` r
+(observado <- parametros %>% 
+    dplyr::filter( uh_name == "Cuenca Tumbes" & bh_esc == "Observado") %>% 
+  mutate( meses = as.Date(sprintf("2000-%s-01", bh_month)))%>% 
+    dplyr::select(bh_pc,meses) %>% rename(ppobsr = bh_pc))
+```
+
+    ## # A tibble: 12 x 2
+    ##     ppobsr meses     
+    ##      <dbl> <date>    
+    ##  1 108.    2000-01-01
+    ##  2 182.    2000-02-01
+    ##  3 228.    2000-03-01
+    ##  4 199.    2000-04-01
+    ##  5  39.0   2000-05-01
+    ##  6   8.39  2000-06-01
+    ##  7   1.11  2000-07-01
+    ##  8   0.621 2000-08-01
+    ##  9   2.07  2000-09-01
+    ## 10  13.4   2000-10-01
+    ## 11  28.1   2000-11-01
+    ## 12  42.5   2000-12-01
+
+``` r
+(ACCESS <- parametros %>%
+  dplyr::filter( uh_name == "Cuenca Tumbes" & bh_esc == "ACCESS 1.0" ) %>%
+  dplyr::select(bh_pc) %>% rename(ppacces = bh_pc))
+```
+
+    ## # A tibble: 12 x 1
+    ##    ppacces
+    ##      <dbl>
+    ##  1 189.   
+    ##  2 225.   
+    ##  3 293.   
+    ##  4 218.   
+    ##  5  32.2  
+    ##  6   7.58 
+    ##  7   2.68 
+    ##  8   0.473
+    ##  9   2.05 
+    ## 10  24.0  
+    ## 11  28.3  
+    ## 12  49.9
+
+``` r
+(MPI <- parametros %>% 
+  dplyr::filter( uh_name == "Cuenca Tumbes" & bh_esc == "MPI-ESM-LR" ) %>%
+  dplyr::select(bh_pc) %>% rename(ppmpi = bh_pc))
+```
+
+    ## # A tibble: 12 x 1
+    ##      ppmpi
+    ##      <dbl>
+    ##  1  88.2  
+    ##  2 233.   
+    ##  3 230.   
+    ##  4 148.   
+    ##  5  33.1  
+    ##  6   4.08 
+    ##  7   0.843
+    ##  8   0.463
+    ##  9   1.59 
+    ## 10  19.3  
+    ## 11  37.2  
+    ## 12  43.4
+
+``` r
+(HadGEM2 <- parametros %>% 
+  dplyr::filter( uh_name == "Cuenca Tumbes" & bh_esc == "HadGEM2-ES" ) %>%
+  dplyr::select(bh_pc) %>% rename(pphad = bh_pc))
+```
+
+    ## # A tibble: 12 x 1
+    ##      pphad
+    ##      <dbl>
+    ##  1 106.   
+    ##  2 221.   
+    ##  3 244.   
+    ##  4 227.   
+    ##  5  66.5  
+    ##  6  11.8  
+    ##  7   3.53 
+    ##  8   0.834
+    ##  9   1.82 
+    ## 10  13.0  
+    ## 11  26.8  
+    ## 12  47.2
+
+``` r
+(observ_modelos <- data.frame(ACCESS, MPI ,HadGEM2,observado) %>% as_tibble())
+```
+
+    ## # A tibble: 12 x 5
+    ##    ppacces   ppmpi   pphad  ppobsr meses     
+    ##      <dbl>   <dbl>   <dbl>   <dbl> <date>    
+    ##  1 189.     88.2   106.    108.    2000-01-01
+    ##  2 225.    233.    221.    182.    2000-02-01
+    ##  3 293.    230.    244.    228.    2000-03-01
+    ##  4 218.    148.    227.    199.    2000-04-01
+    ##  5  32.2    33.1    66.5    39.0   2000-05-01
+    ##  6   7.58    4.08   11.8     8.39  2000-06-01
+    ##  7   2.68    0.843   3.53    1.11  2000-07-01
+    ##  8   0.473   0.463   0.834   0.621 2000-08-01
+    ##  9   2.05    1.59    1.82    2.07  2000-09-01
+    ## 10  24.0    19.3    13.0    13.4   2000-10-01
+    ## 11  28.3    37.2    26.8    28.1   2000-11-01
+    ## 12  49.9    43.4    47.2    42.5   2000-12-01
+
+``` r
+ggplot(observ_modelos, aes(x=meses)) +
+  geom_line(aes(y=ppobsr, color = "Observado"))+
+  geom_point(aes(y=ppobsr, color = "Observado"))+
+  geom_line(aes(y=ppacces, color = "Access"))+
+  geom_point(aes(y=ppacces, color = "Access"))+
+  geom_line(aes(y=pphad, color = "HADGEM2"))+
+  geom_point(aes(y=pphad, color = "HADGEM2"))+
+  geom_line(aes(y=ppmpi, color = "MPI"))+
+  geom_point(aes(y=ppmpi, color = "MPI"))+
+  labs(x = "Meses",
+       y = "Pp")+
+  scale_colour_manual("",
+                      breaks = c("Access","HADGEM2","MPI","Observado"),
+                      values = c("red","green","orange","blue"))+
+  theme(axis.title.x = element_text(face = "bold"),
+        axis.title.y = element_text(face = "bold"))
+```
+
+![](README_files/figure-gfm/unnamed-chunk-18-1.png)<!-- -->
+
 ## PARTE 3
 
 *Previamente se realizó la conversión de los valores de -99.9 a N.A*
@@ -359,7 +492,7 @@ ggplot(periodo_total, aes(x=month, y=temp_media, color = periodo))+
   theme(plot.title = element_text(vjust =2, hjust = 0.5))
 ```
 
-![](README_files/figure-gfm/unnamed-chunk-22-1.png)<!-- -->
+![](README_files/figure-gfm/unnamed-chunk-29-1.png)<!-- -->
 
 **e).Plotear (boxplot) la variabilidad de los valores mensuales
 (Ene-Dic) para el perıodo 1980-2013 y describirlo correctamente**
@@ -388,4 +521,4 @@ ggplot(periodo_3, aes(month, temp_media)) +
   theme(axis.title.y = element_text(vjust = 2.5))
 ```
 
-![](README_files/figure-gfm/unnamed-chunk-24-1.png)<!-- -->
+![](README_files/figure-gfm/unnamed-chunk-31-1.png)<!-- -->
