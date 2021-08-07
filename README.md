@@ -21,14 +21,14 @@ variable, ́unicamente con el dato de la elevación**
 **El valor de la variable x a 1000 metros es de 81.4 unidades**
 
 ``` r
-#Donde x es la altura
-x <- 5000
-y <- ((-0.004*x) + 85.4)
-z <- ((-0.001*x) + 72.9)
+#Donde i es la altura
+i <- 5000
+y <- ((-0.004*i) + 85.4)
+z <- ((-0.001*i) + 72.9)
 m <- 72.4
-if (1000 <= x & x <= 3000) {
+if (1000 <= i & i <= 3000) {
  cat("El valor de la variable x es", y)
-} else if (3000 < x & x <= 4000) {
+} else if (3000 < i & i <= 4000) {
   cat("El valor de la variable x es", z)
 } else {
    cat("El valor de la variable x es", m)
@@ -168,6 +168,15 @@ que no se repitan los valores*
 
 **c) De la pregunta anterior, ¿Cual es el escenario climático más
 preciso? Fundamente su respuesta.**
+
+``` r
+as_tibble(sesgo_caudal, sesgo_evap, sesgo_pp, sesgo_rhidrico)
+```
+
+    ## # A tibble: 1 x 3
+    ##   bias_Aces bias_Had bias_MPI
+    ##       <dbl>    <dbl>    <dbl>
+    ## 1      40.9     21.3     -3.1
 
 ## PARTE 3
 
