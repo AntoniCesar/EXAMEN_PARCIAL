@@ -454,45 +454,67 @@ periodos 1980-1995 y 1996-2010. Plotear los resultados en una sola
 grafica para describir sus diferencias y/o similitudes (entre
 climatologias).**
 
-*Filtramos para el periodo 1980-1995*
+*Definimos la funcion consulta\_t*
 
 ``` r
-periodo_1 <- datos_temperatura %>% 
-  filter(DATE >= "1980-01-01" & DATE < "1995-12-31")%>%
-  group_by(DATE) %>% summarise(temp_media = mean(Temperaturas, na.rm = TRUE),periodo = "1980-1995")%>%
-  mutate(DATE = as.Date(sprintf("%1$s-01",DATE)),month=str_sub(DATE,6,7))
+consulta_t <- function(x, y) {
+  x <- as.character(x)
+  y <- as.character(y)
+  
+Temperatura_mensual %>%
+  filter(DATE >= x & DATE < y) %>%
+  group_by(DATE = str_sub(DATE, 6, 7)) %>%
+  summarise( 
+    Temperaturas_prom = mean(Temperaturas, na.rm = T), 
+  ) %>%
+    mutate(periodo = sprintf("%1$s-%2$s", x = str_sub(x, 1, 4), y = str_sub(y, 1, 4)))
+}
 ```
 
-*Filtramos para el periodo 1996-2010*
+*Hallamos la climatologia para los peridos requeridos y nombramos los
+tibbles*
 
 ``` r
-periodo_2 <- datos_temperatura %>% 
-  filter(DATE >= "1996-01-01" & DATE < "2010-12-31")%>%
-  group_by(DATE) %>% summarise(temp_media = mean(Temperaturas, na.rm = TRUE),periodo = "1996-2010")%>%
-  mutate(DATE = as.Date(sprintf("%1$s-01",DATE)),month=str_sub(DATE,6,7))
+consulta1 <- consulta_t("1980-01-01", "1995-12-31")
+consulta2 <- consulta_t("1996-01-01", "2010-12-31")
 ```
 
 *Agrupamos las variables*
 
 ``` r
-periodo_total <- rbind(periodo_1,periodo_2)
+periodo_total <- rbind(consulta1,consulta2)
 ```
 
 *Ploteamos*
 
 ``` r
-ggplot(periodo_total, aes(x=month, y=temp_media, color = periodo))+
-  geom_bar(stat = "identity", fill = "#5F9EA0")+
-  theme_bw() +
+ggplot(periodo_total) +
+  geom_bar(stat = "identity", fill = "#048ABF", aes(x = DATE, y = Temperaturas_prom)) +
+  labs(y = "Temperatura", x = "meses") +
+  facet_wrap(~periodo, nrow = 2) +
   scale_x_discrete(
-    labels = month.abb)+
-  labs(y = "Temperatura", x = "Meses"
-  )+
-  ggtitle("Climatología (Ene-Dic) para los periodos de 1980-1995 y 1996-2010")+
-  theme(plot.title = element_text(vjust =2, hjust = 0.5))
+    labels = month.abb)
 ```
 
 ![](README_files/figure-gfm/unnamed-chunk-29-1.png)<!-- -->
+
+*Otra forma de ploteo para mejor visualizacion*
+
+``` r
+periodo_total %>%
+  filter(periodo %in% c("1980-1995", "1996-2010")) %>%
+  ggplot(aes(x=DATE, y=Temperaturas_prom, color=periodo))+
+  geom_point()+
+  theme_bw() +
+  scale_x_discrete(
+    labels = month.abb)+
+  labs(y = "Temperatura promedio (°C)", x = "Tiempo (Meses)"
+  )+
+  ggtitle("Climatologia (Ene-Dic) para los periodos de 1980-1995 y 1996-2010")+
+  theme(plot.title = element_text(vjust =2, hjust = 0.5))
+```
+
+![](README_files/figure-gfm/unnamed-chunk-30-1.png)<!-- -->
 
 **e).Plotear (boxplot) la variabilidad de los valores mensuales
 (Ene-Dic) para el perıodo 1980-2013 y describirlo correctamente**
@@ -500,25 +522,24 @@ ggplot(periodo_total, aes(x=month, y=temp_media, color = periodo))+
 *Filtramos para el periodo 1980-2013*
 
 ``` r
-periodo_3 <- datos_temperatura%>%
-  dplyr::filter(DATE >= "1980-01-01" & DATE < "2013-12-31")%>%
-  group_by(DATE) %>% summarise(temp_media = mean(Temperaturas, na.rm = TRUE),periodo = "1980-2013")%>%
-  mutate(DATE = as.Date(sprintf("%1$s-01",DATE)),month=str_sub(DATE,6,7))
+consulta3 <- Temperatura_mensual %>%
+  rename(Temperatura_prom = Temperaturas) %>%
+  dplyr::filter(DATE >= "1980-01-01" & DATE < "2013-12-31") 
 ```
 
 *Ploteamos*
 
 ``` r
-ggplot(periodo_3, aes(month, temp_media)) +
-  geom_boxplot(fill = "#2297E6") +
+ggplot(consulta3, aes(month, Temperatura_prom)) +
+  geom_boxplot(fill = "#048ABF") +
   theme_bw() +
   scale_x_discrete(
     labels = month.abb
   ) +
-  ggtitle("Variabilidad de la temperatura mensual, Periodo 1980-2013")+
+  ggtitle("Variabilidad de la temperatura mensual - periodo 1980-2013")+
   theme(plot.title = element_text(vjust =2, hjust = 0.5))+
-  labs(y="Temperatura (°C)", x="Meses") +
+  labs(y="Temperatura (Â°C)", x="tiempo (meses)") +
   theme(axis.title.y = element_text(vjust = 2.5))
 ```
 
-![](README_files/figure-gfm/unnamed-chunk-31-1.png)<!-- -->
+![](README_files/figure-gfm/unnamed-chunk-32-1.png)<!-- -->
