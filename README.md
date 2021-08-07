@@ -107,8 +107,8 @@ mod_MPI<- dplyr::filter(parametros, bh_esc == "MPI-ESM-LR" &
 ```
 
 *Ahora aplicamos la función “pbias” el cual esta el la libreria
-“hydroGOF” para tener los valores de sesgo y por ultimo unimos para
-que no se repitan los valores*
+“hydroGOF” para tener los valores de sesgo y por ultimo unimos para que
+no se repitan los valores*
 
 *Aplicamos sesgo para la precipitacion*
 
@@ -283,3 +283,30 @@ paso mensual para los años 2005 y 2010.**
 ```
 
     ## [1] 0
+
+\*\*d).
+
+\*\*e).Plotear (boxplot) la variabilidad de los valores mensuales
+(Ene-Dic) para el perıodo 1980-2013 y describirlo correctamente
+
+``` r
+periodo_3 <- datos_temperatura%>%
+  dplyr::filter(DATE >= "1980-01-01" & DATE < "2013-12-31")%>%
+  group_by(DATE) %>% summarise(temp_media = mean(Temperaturas, na.rm = TRUE),period = "1980-2013")%>%
+  mutate(DATE = as.Date(sprintf("%1$s-01",DATE)),month=str_sub(DATE,6,7))
+
+ggplot(periodo_3, aes(month, temp_media)) +
+  geom_boxplot(fill = "#2297E6") +
+  theme_bw() +
+  scale_x_discrete(
+    labels = month.abb
+  ) +
+  ggtitle("Variabilidad de la temperatura mensual, Periodo 1980-2013")+
+  theme(plot.title = element_text(vjust =2, hjust = 0.5))+
+  labs(y="Temperatura (°C)", x="Meses") +
+  theme(axis.title.y = element_text(vjust = 2.5))
+```
+
+    ## Warning: Removed 1196 rows containing non-finite values (stat_boxplot).
+
+![](README_files/figure-gfm/unnamed-chunk-18-1.png)<!-- -->
