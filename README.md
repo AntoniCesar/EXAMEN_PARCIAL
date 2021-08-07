@@ -36,7 +36,7 @@ variable, ́unicamente con el dato de la elevación**
 
 ``` r
 #Donde i es la altura
-i <- 5000
+i <- 2000
 y <- ((-0.004*i) + 85.4)
 z <- ((-0.001*i) + 72.9)
 m <- 72.4
@@ -49,7 +49,7 @@ if (1000 <= i & i <= 3000) {
 }
 ```
 
-    ## El valor de la variable x es 72.4
+    ## El valor de la variable x es 77.4
 
 **2)Resolver el siguiente sistema de ecuaciones.**
 
@@ -121,8 +121,8 @@ mod_MPI<- dplyr::filter(parametros, bh_esc == "MPI-ESM-LR" &
 ```
 
 *Ahora aplicamos la función “pbias” el cual esta el la libreria
-“hydroGOF” para tener los valores de sesgo y por ultimo unimos para que
-no se repitan los valores*
+“hydroGOF” para tener los valores de sesgo y por ultimo unimos para
+que no se repitan los valores*
 
 *Aplicamos sesgo para la precipitacion*
 
@@ -184,13 +184,164 @@ no se repitan los valores*
 preciso? Fundamente su respuesta.**
 
 ``` r
-as_tibble(sesgo_caudal, sesgo_evap, sesgo_pp, sesgo_rhidrico)
+tipos_sesgo <- c("Sesgo_Caudal", "sesgo_evap", "sesgo_rhidrico", "sesgo_pp")
+sesgo_general <- rbind(sesgo_caudal, sesgo_evap, sesgo_rhidrico, sesgo_pp) %>% 
+  cbind(tipos_sesgo)
 ```
 
-    ## # A tibble: 1 x 3
-    ##   bias_Aces bias_Had bias_MPI
-    ##       <dbl>    <dbl>    <dbl>
-    ## 1      40.9     21.3     -3.1
+``` r
+ggplot(sesgo_general, aes(x=tipos_sesgo)) +
+  geom_point(aes(y=bias_Aces, color = "Access"))+
+  geom_point(aes(y=bias_Had, color = "HADGEM2"))+
+  geom_point(aes(y=bias_MPI, color = "MPI"))+
+  labs(x = "Tipos_Sesgo",
+       y = "sesgo")+
+  scale_colour_manual("",
+                      breaks = c("Access","HADGEM2","MPI"),
+                      values = c("red","green","orange"))+
+  theme(axis.title.x = element_text(face = "bold"),
+        axis.title.y = element_text(face = "bold"))
+```
+
+![](README_files/figure-gfm/unnamed-chunk-13-1.png)<!-- -->
+
+*los valores que se acercan más al cero son los que tienen menos sesgo
+ya que se apegan más a lo valores originales, por tanto en este caso el
+scenario MPI, es el escenario climatico más precesio mientras Acces
+tiene una sobreestimación respecto a los valores reales*
+
+**d) Graficar, con ggplot2, la precipitaci´on (enero a diciembre)
+observada y modelos climaticos.**
+
+``` r
+(observado <- parametros %>% 
+    dplyr::filter( uh_name == "Cuenca Tumbes" & bh_esc == "Observado") %>% 
+  mutate( meses = as.Date(sprintf("2000-%s-01", bh_month)))%>% 
+    dplyr::select(bh_pc,meses) %>% rename(ppobsr = bh_pc))
+```
+
+    ## # A tibble: 12 x 2
+    ##     ppobsr meses     
+    ##      <dbl> <date>    
+    ##  1 108.    2000-01-01
+    ##  2 182.    2000-02-01
+    ##  3 228.    2000-03-01
+    ##  4 199.    2000-04-01
+    ##  5  39.0   2000-05-01
+    ##  6   8.39  2000-06-01
+    ##  7   1.11  2000-07-01
+    ##  8   0.621 2000-08-01
+    ##  9   2.07  2000-09-01
+    ## 10  13.4   2000-10-01
+    ## 11  28.1   2000-11-01
+    ## 12  42.5   2000-12-01
+
+``` r
+(ACCESS <- parametros %>%
+  dplyr::filter( uh_name == "Cuenca Tumbes" & bh_esc == "ACCESS 1.0" ) %>%
+  dplyr::select(bh_pc) %>% rename(ppacces = bh_pc))
+```
+
+    ## # A tibble: 12 x 1
+    ##    ppacces
+    ##      <dbl>
+    ##  1 189.   
+    ##  2 225.   
+    ##  3 293.   
+    ##  4 218.   
+    ##  5  32.2  
+    ##  6   7.58 
+    ##  7   2.68 
+    ##  8   0.473
+    ##  9   2.05 
+    ## 10  24.0  
+    ## 11  28.3  
+    ## 12  49.9
+
+``` r
+(MPI <- parametros %>% 
+  dplyr::filter( uh_name == "Cuenca Tumbes" & bh_esc == "MPI-ESM-LR" ) %>%
+  dplyr::select(bh_pc) %>% rename(ppmpi = bh_pc))
+```
+
+    ## # A tibble: 12 x 1
+    ##      ppmpi
+    ##      <dbl>
+    ##  1  88.2  
+    ##  2 233.   
+    ##  3 230.   
+    ##  4 148.   
+    ##  5  33.1  
+    ##  6   4.08 
+    ##  7   0.843
+    ##  8   0.463
+    ##  9   1.59 
+    ## 10  19.3  
+    ## 11  37.2  
+    ## 12  43.4
+
+``` r
+(HadGEM2 <- parametros %>% 
+  dplyr::filter( uh_name == "Cuenca Tumbes" & bh_esc == "HadGEM2-ES" ) %>%
+  dplyr::select(bh_pc) %>% rename(pphad = bh_pc))
+```
+
+    ## # A tibble: 12 x 1
+    ##      pphad
+    ##      <dbl>
+    ##  1 106.   
+    ##  2 221.   
+    ##  3 244.   
+    ##  4 227.   
+    ##  5  66.5  
+    ##  6  11.8  
+    ##  7   3.53 
+    ##  8   0.834
+    ##  9   1.82 
+    ## 10  13.0  
+    ## 11  26.8  
+    ## 12  47.2
+
+``` r
+(observ_modelos <- data.frame(ACCESS, MPI ,HadGEM2,observado) %>% as_tibble())
+```
+
+    ## # A tibble: 12 x 5
+    ##    ppacces   ppmpi   pphad  ppobsr meses     
+    ##      <dbl>   <dbl>   <dbl>   <dbl> <date>    
+    ##  1 189.     88.2   106.    108.    2000-01-01
+    ##  2 225.    233.    221.    182.    2000-02-01
+    ##  3 293.    230.    244.    228.    2000-03-01
+    ##  4 218.    148.    227.    199.    2000-04-01
+    ##  5  32.2    33.1    66.5    39.0   2000-05-01
+    ##  6   7.58    4.08   11.8     8.39  2000-06-01
+    ##  7   2.68    0.843   3.53    1.11  2000-07-01
+    ##  8   0.473   0.463   0.834   0.621 2000-08-01
+    ##  9   2.05    1.59    1.82    2.07  2000-09-01
+    ## 10  24.0    19.3    13.0    13.4   2000-10-01
+    ## 11  28.3    37.2    26.8    28.1   2000-11-01
+    ## 12  49.9    43.4    47.2    42.5   2000-12-01
+
+``` r
+ggplot(observ_modelos, aes(x=meses)) +
+  geom_line(aes(y=ppobsr, color = "Observado"))+
+  geom_point(aes(y=ppobsr, color = "Observado"))+
+  geom_line(aes(y=ppacces, color = "Access"))+
+  geom_point(aes(y=ppacces, color = "Access"))+
+  geom_line(aes(y=pphad, color = "HADGEM2"))+
+  geom_point(aes(y=pphad, color = "HADGEM2"))+
+  geom_line(aes(y=ppmpi, color = "MPI"))+
+  geom_point(aes(y=ppmpi, color = "MPI"))+
+  labs(x = "Meses",
+       y = "Pp")+
+  scale_colour_manual("",
+                      breaks = c("Access","HADGEM2","MPI","Observado"),
+                      values = c("red","green","orange","blue"))+
+  theme(axis.title.x = element_text(face = "bold"),
+        axis.title.y = element_text(face = "bold"))
+```
+
+![](README_files/figure-gfm/unnamed-chunk-19-1.png)<!-- -->
 
 ## PARTE 3
 
@@ -202,8 +353,7 @@ head(datos_temperatura <- read_csv("temperatureDataset.csv") %>%
     mutate(DATE = as.Date (DATE,format = "%d/%m/%Y")) %>%
     rename(Temperaturas =qc00000804) %>%
     arrange(DATE) %>%
-    mutate(Temperaturas = ifelse(Temperaturas == -99.9, NA, Temperaturas))
-    ) 
+    mutate(Temperaturas = ifelse(Temperaturas == -99.9, NA, Temperaturas))) 
 ```
 
     ## # A tibble: 6 x 2
@@ -272,13 +422,11 @@ valores atípicos y describa una posible causa**
   ) %>%
   summarise(
     Temperaturas = mean(Temperaturas, na.rm = T),
-    missval = unique(missval)
-  )  %>%
+    missval = unique(missval))  %>%
   mutate(
     Temperaturas = ifelse(missval >= 5, NA, Temperaturas),
     DATE = as.Date(sprintf("%1$s-01",DATE)),
-    month=str_sub(DATE,6,7)
-  ))
+    month=str_sub(DATE,6,7)))
 ```
 
     ## # A tibble: 1,044 x 4
@@ -321,45 +469,67 @@ periodos 1980-1995 y 1996-2010. Plotear los resultados en una sola
 grafica para describir sus diferencias y/o similitudes (entre
 climatologias).**
 
-*Filtramos para el periodo 1980-1995*
+*Definimos la funcion consulta\_t*
 
 ``` r
-periodo_1 <- datos_temperatura %>% 
-  filter(DATE >= "1980-01-01" & DATE < "1995-12-31")%>%
-  group_by(DATE) %>% summarise(temp_media = mean(Temperaturas, na.rm = TRUE),periodo = "1980-1995")%>%
-  mutate(DATE = as.Date(sprintf("%1$s-01",DATE)),month=str_sub(DATE,6,7))
+consulta_t <- function(x, y) {
+  x <- as.character(x)
+  y <- as.character(y)
+  
+Temperatura_mensual %>%
+  filter(DATE >= x & DATE < y) %>%
+  group_by(DATE = str_sub(DATE, 6, 7)) %>%
+  summarise( 
+    Temperaturas_prom = mean(Temperaturas, na.rm = T), 
+  ) %>%
+    mutate(periodo = sprintf("%1$s-%2$s", x = str_sub(x, 1, 4), y = str_sub(y, 1, 4)))
+}
 ```
 
-*Filtramos para el periodo 1996-2010*
+*Hallamos la climatologia para los peridos requeridos y nombramos los
+tibbles*
 
 ``` r
-periodo_2 <- datos_temperatura %>% 
-  filter(DATE >= "1996-01-01" & DATE < "2010-12-31")%>%
-  group_by(DATE) %>% summarise(temp_media = mean(Temperaturas, na.rm = TRUE),periodo = "1996-2010")%>%
-  mutate(DATE = as.Date(sprintf("%1$s-01",DATE)),month=str_sub(DATE,6,7))
+consulta1 <- consulta_t("1980-01-01", "1995-12-31")
+consulta2 <- consulta_t("1996-01-01", "2010-12-31")
 ```
 
 *Agrupamos las variables*
 
 ``` r
-periodo_total <- rbind(periodo_1,periodo_2)
+periodo_total <- rbind(consulta1,consulta2)
 ```
 
 *Ploteamos*
 
 ``` r
-ggplot(periodo_total, aes(x=month, y=temp_media, color = periodo))+
-  geom_bar(stat = "identity", fill = "#5F9EA0")+
+ggplot(periodo_total) +
+  geom_bar(stat = "identity", fill = "#048ABF", aes(x = DATE, y = Temperaturas_prom)) +
+  labs(y = "Temperatura", x = "meses") +
+  facet_wrap(~periodo, nrow = 2) +
+  scale_x_discrete(
+    labels = month.abb)
+```
+
+![](README_files/figure-gfm/unnamed-chunk-30-1.png)<!-- -->
+
+*Otra forma de ploteo para mejor visualizacion*
+
+``` r
+periodo_total %>%
+  filter(periodo %in% c("1980-1995", "1996-2010")) %>%
+  ggplot(aes(x=DATE, y=Temperaturas_prom, color=periodo))+
+  geom_point()+
   theme_bw() +
   scale_x_discrete(
     labels = month.abb)+
-  labs(y = "Temperatura", x = "Meses"
+  labs(y = "Temperatura promedio (°C)", x = "Tiempo (Meses)"
   )+
-  ggtitle("Climatología (Ene-Dic) para los periodos de 1980-1995 y 1996-2010")+
+  ggtitle("Climatologia (Ene-Dic) para los periodos de 1980-1995 y 1996-2010")+
   theme(plot.title = element_text(vjust =2, hjust = 0.5))
 ```
 
-![](README_files/figure-gfm/unnamed-chunk-22-1.png)<!-- -->
+![](README_files/figure-gfm/unnamed-chunk-31-1.png)<!-- -->
 
 **e).Plotear (boxplot) la variabilidad de los valores mensuales
 (Ene-Dic) para el perıodo 1980-2013 y describirlo correctamente**
@@ -367,25 +537,24 @@ ggplot(periodo_total, aes(x=month, y=temp_media, color = periodo))+
 *Filtramos para el periodo 1980-2013*
 
 ``` r
-periodo_3 <- datos_temperatura%>%
-  dplyr::filter(DATE >= "1980-01-01" & DATE < "2013-12-31")%>%
-  group_by(DATE) %>% summarise(temp_media = mean(Temperaturas, na.rm = TRUE),periodo = "1980-2013")%>%
-  mutate(DATE = as.Date(sprintf("%1$s-01",DATE)),month=str_sub(DATE,6,7))
+consulta3 <- Temperatura_mensual %>%
+  rename(Temperatura_prom = Temperaturas) %>%
+  dplyr::filter(DATE >= "1980-01-01" & DATE < "2013-12-31") 
 ```
 
 *Ploteamos*
 
 ``` r
-ggplot(periodo_3, aes(month, temp_media)) +
-  geom_boxplot(fill = "#2297E6") +
+ggplot(consulta3, aes(month, Temperatura_prom)) +
+  geom_boxplot(fill = "#048ABF") +
   theme_bw() +
   scale_x_discrete(
     labels = month.abb
   ) +
-  ggtitle("Variabilidad de la temperatura mensual, Periodo 1980-2013")+
+  ggtitle("Variabilidad de la temperatura mensual - periodo 1980-2013")+
   theme(plot.title = element_text(vjust =2, hjust = 0.5))+
-  labs(y="Temperatura (°C)", x="Meses") +
+  labs(y="Temperatura (Â°C)", x="tiempo (meses)") +
   theme(axis.title.y = element_text(vjust = 2.5))
 ```
 
-![](README_files/figure-gfm/unnamed-chunk-24-1.png)<!-- -->
+![](README_files/figure-gfm/unnamed-chunk-33-1.png)<!-- -->
