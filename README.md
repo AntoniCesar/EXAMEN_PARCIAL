@@ -3,6 +3,20 @@ RESOLUCION
 Grupo\_05
 27/7/2021
 
+**INTEGRANTES DEL GRUPO 05**
+
+*BACA QUIÑONEZ, Pedro (17160038)*
+
+*COSIOS LEONA, Jose (17160182)*
+
+*ESQUIVEL GUILLERMO, Antoni (17160183)*
+
+*GARRO DOROTEO, Jamir (17160185)*
+
+*RIVERA REAÑO, Ricardo (17160037)*
+
+**IMPORTANTE:** *Cargar las librerias*
+
 ``` r
 library(tidyverse)
 library(hydroGOF)
@@ -107,8 +121,8 @@ mod_MPI<- dplyr::filter(parametros, bh_esc == "MPI-ESM-LR" &
 ```
 
 *Ahora aplicamos la función “pbias” el cual esta el la libreria
-“hydroGOF” para tener los valores de sesgo y por ultimo unimos para
-que no se repitan los valores*
+“hydroGOF” para tener los valores de sesgo y por ultimo unimos para que
+no se repitan los valores*
 
 *Aplicamos sesgo para la precipitacion*
 
@@ -292,3 +306,86 @@ paso mensual para los años 2005 y 2010.**
 ```
 
     ## [1] 0
+
+``` r
+(NA_mensual2<- 
+   sum(is.na(dplyr::filter(Temperatura_mensual, DATE >= "2006-01-01" & 
+                             DATE <= "2006-12-01") $Temperaturas)))
+```
+
+    ## [1] 0
+
+**d).Crea una funcion que calcule, a partir de los datos de temperatura
+mensual, la climatologia(Ene-Dic). Obtener la climatologia para los
+periodos 1980-1995 y 1996-2010. Plotear los resultados en una sola
+grafica para describir sus diferencias y/o similitudes (entre
+climatologias).**
+
+*Filtramos para el periodo 1980-1995*
+
+``` r
+periodo_1 <- datos_temperatura %>% 
+  filter(DATE >= "1980-01-01" & DATE < "1995-12-31")%>%
+  group_by(DATE) %>% summarise(temp_media = mean(Temperaturas, na.rm = TRUE),periodo = "1980-1995")%>%
+  mutate(DATE = as.Date(sprintf("%1$s-01",DATE)),month=str_sub(DATE,6,7))
+```
+
+*Filtramos para el periodo 1996-2010*
+
+``` r
+periodo_2 <- datos_temperatura %>% 
+  filter(DATE >= "1996-01-01" & DATE < "2010-12-31")%>%
+  group_by(DATE) %>% summarise(temp_media = mean(Temperaturas, na.rm = TRUE),periodo = "1996-2010")%>%
+  mutate(DATE = as.Date(sprintf("%1$s-01",DATE)),month=str_sub(DATE,6,7))
+```
+
+*Agrupamos las variables*
+
+``` r
+periodo_total <- rbind(periodo_1,periodo_2)
+```
+
+*Ploteamos*
+
+``` r
+ggplot(periodo_total, aes(x=month, y=temp_media, color = periodo))+
+  geom_bar(stat = "identity", fill = "#5F9EA0")+
+  theme_bw() +
+  scale_x_discrete(
+    labels = month.abb)+
+  labs(y = "Temperatura", x = "Meses"
+  )+
+  ggtitle("Climatología (Ene-Dic) para los periodos de 1980-1995 y 1996-2010")+
+  theme(plot.title = element_text(vjust =2, hjust = 0.5))
+```
+
+![](README_files/figure-gfm/unnamed-chunk-22-1.png)<!-- -->
+
+**e).Plotear (boxplot) la variabilidad de los valores mensuales
+(Ene-Dic) para el perıodo 1980-2013 y describirlo correctamente**
+
+*Filtramos para el periodo 1980-2013*
+
+``` r
+periodo_3 <- datos_temperatura%>%
+  dplyr::filter(DATE >= "1980-01-01" & DATE < "2013-12-31")%>%
+  group_by(DATE) %>% summarise(temp_media = mean(Temperaturas, na.rm = TRUE),periodo = "1980-2013")%>%
+  mutate(DATE = as.Date(sprintf("%1$s-01",DATE)),month=str_sub(DATE,6,7))
+```
+
+*Ploteamos*
+
+``` r
+ggplot(periodo_3, aes(month, temp_media)) +
+  geom_boxplot(fill = "#2297E6") +
+  theme_bw() +
+  scale_x_discrete(
+    labels = month.abb
+  ) +
+  ggtitle("Variabilidad de la temperatura mensual, Periodo 1980-2013")+
+  theme(plot.title = element_text(vjust =2, hjust = 0.5))+
+  labs(y="Temperatura (°C)", x="Meses") +
+  theme(axis.title.y = element_text(vjust = 2.5))
+```
+
+![](README_files/figure-gfm/unnamed-chunk-24-1.png)<!-- -->
