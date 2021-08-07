@@ -43,7 +43,7 @@ elevación**
 
 ```{r}
 #Donde i es la altura
-i <- 5000
+i <- 2000
 y <- ((-0.004*i) + 85.4)
 z <- ((-0.001*i) + 72.9)
 m <- 72.4
@@ -148,9 +148,11 @@ valores*
 **c) De la pregunta anterior, ¿Cual es el escenario climático más preciso? 
 Fundamente su respuesta.**
 
+
 ```{r}
-as_tibble(sesgo_caudal, sesgo_evap, sesgo_pp, sesgo_rhidrico)
+
 ```
+
 
 ## PARTE 3
 *Previamente se realizó la conversión de los valores de -99.9 a N.A*
@@ -160,8 +162,7 @@ head(datos_temperatura <- read_csv("temperatureDataset.csv") %>%
     mutate(DATE = as.Date (DATE,format = "%d/%m/%Y")) %>%
     rename(Temperaturas =qc00000804) %>%
     arrange(DATE) %>%
-    mutate(Temperaturas = ifelse(Temperaturas == -99.9, NA, Temperaturas))
-    ) 
+    mutate(Temperaturas = ifelse(Temperaturas == -99.9, NA, Temperaturas))) 
 ```
 *Luego se verificó que el rango de datos esté completo*
 
@@ -200,13 +201,11 @@ describa una posible causa**
   ) %>%
   summarise(
     Temperaturas = mean(Temperaturas, na.rm = T),
-    missval = unique(missval)
-  )  %>%
+    missval = unique(missval))  %>%
   mutate(
     Temperaturas = ifelse(missval >= 5, NA, Temperaturas),
     DATE = as.Date(sprintf("%1$s-01",DATE)),
-    month=str_sub(DATE,6,7)
-  ))
+    month=str_sub(DATE,6,7)))
 ```
 
 **c). Determine la cantidad de missing values de la serie de tiempo a paso
